@@ -1,24 +1,39 @@
 import React from 'react';
-import logo from './logo.svg';
+import { useEffect, useState } from 'react';
 import './App.css';
 
-function App() {
+const Loading = () => {
+  return (
+    <span>
+      Loading...
+    </span>
+  );
+};
+
+const App = () => {
+  const [Component, setComponent] = useState(() => Loading);
+
+  const updateComponent = async () => {
+    const c = (await eval(`import('/component.js?' + Date.now())`)).default;
+    setComponent(() => c);
+  };
+
+  useEffect(() => {
+    // Required so the dynamically imported components can access React
+    // - Importing React in the component (with explicit import statement or @babel/preset-react automatic runtime) works but adds unnecessary bundle size, might waste time to bundle & send
+    // - Could somehow pass in React to a function to pass it into the component but that's kinda hacky
+    window.React = React;
+    updateComponent();
+  }, []);
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <div className="Code-Pane">
+        Code
+      </div>
+      <div className="Preview-Pane">
+        <Component />
+      </div>
     </div>
   );
 }
