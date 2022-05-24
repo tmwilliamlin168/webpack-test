@@ -14,6 +14,7 @@ const App = () => {
   const [Component, setComponent] = useState(() => Loading);
 
   const updateComponent = async () => {
+    // webpack will change import() into something different
     const c = (await eval(`import('/component.js?' + Date.now())`)).default;
     setComponent(() => c);
   };
