@@ -1,12 +1,16 @@
 import express from 'express';
+import { createServer } from 'http';
 import path from 'path';
+import { Server } from 'socket.io';
 import webpack from 'webpack';
 
 const PORT = process.env.PORT || 3001;
 
 const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer);
 
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`Server listening on ${PORT}`);
 });
 
@@ -47,4 +51,8 @@ webpack({
 
 app.get('/component.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'user_components/output.js'));
+});
+
+io.on('connection', socket => {
+  console.log('socket connected!', socket.id);
 });

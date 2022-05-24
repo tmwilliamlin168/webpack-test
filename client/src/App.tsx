@@ -1,5 +1,7 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
+import io from 'socket.io-client';
+
 import './App.css';
 
 const Loading = () => {
@@ -25,6 +27,14 @@ const App = () => {
     // - Could somehow pass in React to a function to pass it into the component but that's kinda hacky
     window.React = React;
     updateComponent();
+  }, []);
+
+  useEffect(() => {
+    const socket = io();
+
+    socket.on('connect', () => console.log('connected'));
+
+    return () => {socket.close()};
   }, []);
 
   return (
