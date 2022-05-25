@@ -1,6 +1,6 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
-import io from 'socket.io-client';
+import io, { Socket } from 'socket.io-client';
 
 import './App.css';
 
@@ -14,6 +14,8 @@ const Loading = () => {
 
 const App = () => {
   const [Component, setComponent] = useState(() => Loading);
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const [code, setCode] = useState('');
 
   const updateComponent = async () => {
     // webpack will change import() into something different
@@ -31,8 +33,11 @@ const App = () => {
 
   useEffect(() => {
     const socket = io();
+    setSocket(socket);
 
     socket.on('connect', () => console.log('connected'));
+    socket.on('edit', setCode);
+    socket.on('update', updateComponent);
 
     return () => {socket.close()};
   }, []);
@@ -40,7 +45,10 @@ const App = () => {
   return (
     <div className="App">
       <div className="Code-Pane">
-        Code
+        <textarea value={code} onChange={e => {
+          setCode(e.target.value);
+          socket!.emit('edit', e.target.value);
+        }} />
       </div>
       <div className="Preview-Pane">
         <Component />

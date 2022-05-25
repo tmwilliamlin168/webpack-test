@@ -1,4 +1,5 @@
 import express from 'express';
+import fs from 'fs';
 import { createServer } from 'http';
 import path from 'path';
 import { Server } from 'socket.io';
@@ -22,37 +23,66 @@ app.use(express.static(path.resolve(__dirname, '../client/build')));
 // 'module' output is experimental? https://github.com/webpack/webpack/issues/2933
 // too lazy to think abt browserslist
 const path1 = path.resolve(__dirname, 'user_components');
+const inputFile = path.resolve(path1, 'input.jsx');
+let code = fs.readFileSync(inputFile).toString();
+let writeLock = false;
+
 process.env.BABEL_ENV = 'production';
-webpack({
-  mode: 'production',
-  devtool: 'source-map',
-  target: ['web', 'es5'],
-  entry: path.resolve(path1, 'input.jsx'),
-  output: { path: path1, filename: 'output.js', library: {type: 'module'} },
-  module: {
-    rules: [
-      {
-        test: /\.jsx?$/,
-        include: path1,
-        loader: 'babel-loader',
-        options: {
-          presets: ['@babel/preset-env', '@babel/preset-react'],
-        },
-      },
-    ],
-  },
-  experiments: { outputModule: true },
-}, (err, stats) => {
-  if (err || stats?.hasErrors()) {
-    console.error(err || stats?.compilation.errors);
-  }
-  console.log('Finished compiling?');
-});
 
 app.get('/component.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'user_components/output.js'));
 });
 
+const updateCode = (newCode: string) => {
+  code = newCode;
+  if (writeLock)
+    return;
+  writeLock = true;
+  console.log('try write file');
+  fs.writeFile(inputFile, code, err => {
+    if (err)
+      console.error(err);
+    writeLock = false;
+    if (newCode !== code) {
+      updateCode(code);
+      return;
+    }
+    if (err)
+      return;
+    console.log('finished write');
+    webpack({
+      mode: 'production',
+      devtool: 'source-map',
+      target: ['web', 'es5'],
+      entry: inputFile,
+      output: { path: path1, filename: 'output.js', library: {type: 'module'} },
+      module: {
+        rules: [
+          {
+            test: /\.jsx?$/,
+            include: path1,
+            loader: 'babel-loader',
+            options: {
+              presets: ['@babel/preset-env', '@babel/preset-react'],
+            },
+          },
+        ],
+      },
+      experiments: { outputModule: true },
+    }, (err, stats) => {
+      if (err || stats?.hasErrors()) {
+        console.error(err || stats?.compilation.errors);
+        return;
+      }
+      console.log('Finished compiling?');
+      io.emit('update');
+    });
+  });
+};
+
 io.on('connection', socket => {
   console.log('socket connected!', socket.id);
+  socket.emit('edit', code);
+
+  socket.on('edit', updateCode);
 });

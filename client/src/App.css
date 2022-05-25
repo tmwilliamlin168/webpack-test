@@ -5,11 +5,20 @@
 }
 
 .Code-Pane {
-  flex-grow: 1;
+  flex: 1 1 0%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid gray;
+}
+
+.Code-Pane textarea {
+  width: 70%;
+  height: 70%;
 }
 
 .Preview-Pane {
-  flex-grow: 1;
+  flex: 1 1 0%;
   display: flex;
   align-items: center;
   justify-content: center;
