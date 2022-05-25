@@ -5,6 +5,14 @@ import path from 'path';
 import { Server } from 'socket.io';
 import webpack from 'webpack';
 
+const DEFAULT_INPUT = `export default function() {
+  return (
+    <div>
+      Hello from webpack + babel!
+    </div>
+  );
+};
+`;
 const PORT = process.env.PORT || 3001;
 
 const app = express();
@@ -22,8 +30,19 @@ app.use(express.static(path.resolve(__dirname, '../client/build')));
 // concurrent compilations is bad?
 // 'module' output is experimental? https://github.com/webpack/webpack/issues/2933
 // too lazy to think abt browserslist
+// output.js is not generated the first time wtever
 const path1 = path.resolve(__dirname, 'user_components');
+fs.mkdirSync(path1, { recursive: true });
 const inputFile = path.resolve(path1, 'input.jsx');
+try {
+  fs.writeFileSync(inputFile, DEFAULT_INPUT, { flag: 'wx' });
+  console.log('input.jsx does not exist, creating one');
+} catch (e: any) {
+  if (e.code === 'EEXIST')
+    console.log('input.jsx already exists');
+  else
+    console.error(e);
+}
 let code = fs.readFileSync(inputFile).toString();
 let writeLock = false;
 
