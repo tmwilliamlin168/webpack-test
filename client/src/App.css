@@ -31,3 +31,14 @@
   align-items: center;
   justify-content: center;
 }
+
+.Error-Pane {
+  width: 70%;
+  height: 50%;
+  display: flex;
+  flex-direction: column;
+}
+
+.Error-Pane-Message {
+  overflow: auto;
+}

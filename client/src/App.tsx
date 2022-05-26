@@ -1,5 +1,6 @@
 import ansiHTML from 'ansi-html-community';
 import React, { useEffect, useState } from 'react';
+import { ErrorBoundary } from 'react-error-boundary'
 import io, { Socket } from 'socket.io-client';
 
 import './App.css';
@@ -56,7 +57,21 @@ const App = () => {
         <div className="Compile-Info" dangerouslySetInnerHTML={{__html: ansiHTML(compileInfo)}} />
       </div>
       <div className="Preview-Pane">
-        <Component />
+        <ErrorBoundary FallbackComponent={({error, resetErrorBoundary}) => {
+          return (
+            <div className="Error-Pane">
+              <b>Oopsies, some JS error occurred:</b>
+              <div className="Error-Pane-Message">
+                <code>{ error.message }</code>
+                <br />
+                <code>{ error.stack }</code>
+              </div>
+              <button onClick={resetErrorBoundary}>Try again</button>
+            </div>
+          );
+        }}>
+          <Component />
+        </ErrorBoundary>
       </div>
     </div>
   );
