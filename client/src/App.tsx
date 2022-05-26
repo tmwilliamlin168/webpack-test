@@ -1,5 +1,5 @@
-import React from 'react';
-import { useEffect, useState } from 'react';
+import ansiHTML from 'ansi-html-community';
+import React, { useEffect, useState } from 'react';
 import io, { Socket } from 'socket.io-client';
 
 import './App.css';
@@ -16,6 +16,7 @@ const App = () => {
   const [Component, setComponent] = useState(() => Loading);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [code, setCode] = useState('');
+  const [compileInfo, setCompileInfo] = useState('Compilation info will appear here');
 
   const updateComponent = async () => {
     // webpack will change import() into something different
@@ -37,7 +38,10 @@ const App = () => {
 
     socket.on('connect', () => console.log('connected'));
     socket.on('edit', setCode);
-    socket.on('update', updateComponent);
+    socket.on('update', (errors, warnings) => {
+      updateComponent();
+      setCompileInfo((errors.length ? '<b>Errors:</b>\n' + errors.join('\n') : '<b>No Errors</b>\n') + '\n' + (warnings.length ? '<b>Warnings:</b>\n' + warnings.join('\n') : '<b>No Warnings</b>\n'));
+    });
 
     return () => {socket.close()};
   }, []);
@@ -49,6 +53,7 @@ const App = () => {
           setCode(e.target.value);
           socket!.emit('edit', e.target.value);
         }} />
+        <div className="Compile-Info" dangerouslySetInnerHTML={{__html: ansiHTML(compileInfo)}} />
       </div>
       <div className="Preview-Pane">
         <Component />

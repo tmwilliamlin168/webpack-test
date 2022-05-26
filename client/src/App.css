@@ -1,12 +1,12 @@
 .App {
   height: 100vh;
   display: flex;
-  flex-direction: row;
 }
 
 .Code-Pane {
   flex: 1 1 0%;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   border-right: 1px solid gray;
@@ -14,7 +14,15 @@
 
 .Code-Pane textarea {
   width: 70%;
-  height: 70%;
+  height: 35%;
+}
+
+.Compile-Info {
+  width: 70%;
+  height: 35%;
+  overflow: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  white-space: pre-wrap;
 }
 
 .Preview-Pane {

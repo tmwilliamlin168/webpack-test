@@ -57,7 +57,6 @@ const updateCode = (newCode: string) => {
   if (writeLock)
     return;
   writeLock = true;
-  console.log('try write file');
   fs.writeFile(inputFile, code, err => {
     if (err)
       console.error(err);
@@ -68,7 +67,6 @@ const updateCode = (newCode: string) => {
     }
     if (err)
       return;
-    console.log('finished write');
     webpack({
       mode: 'production',
       devtool: 'source-map',
@@ -89,12 +87,11 @@ const updateCode = (newCode: string) => {
       },
       experiments: { outputModule: true },
     }, (err, stats) => {
-      if (err || stats?.hasErrors()) {
-        console.error(err || stats?.compilation.errors);
+      if (err) {
+        console.error(err);
         return;
       }
-      console.log('Finished compiling?');
-      io.emit('update');
+      io.emit('update', stats?.compilation.errors.map(error => error.message), stats?.compilation.warnings.map(warning => warning.message));
     });
   });
 };
